@@ -610,6 +610,7 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
     this->clientModel = clientModel;
     if(clientModel)
     {
+/*
         // Create system tray menu (or setup the dock menu) that late to prevent users from calling actions,
         // while the client has not yet fully loaded
         if (trayIcon) {
@@ -633,6 +634,7 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
             createIconMenu(dockIconMenu);
 #endif
         }
+*/
 
         // Keep up to date with client
         setNumConnections(clientModel->getNumConnections());
@@ -734,39 +736,49 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
 
 void BitcoinGUI::createTrayIcon(const NetworkStyle *networkStyle)
 {
+    QMenu *trayIconMenu;
+#ifndef Q_OS_MAC
     trayIcon = new QSystemTrayIcon(this);
+    trayIconMenu = new QMenu(this);
+    trayIcon->setContextMenu(trayIconMenu);
     QString toolTip = tr("Sibcoin Core client") + " " + networkStyle->getTitleAddText();
     trayIcon->setToolTip(toolTip);
     trayIcon->setIcon(networkStyle->getTrayAndWindowIcon());
+    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+            this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
     trayIcon->show();
-    notificator = new Notificator(QApplication::applicationName(), trayIcon, this);
-}
-
-void BitcoinGUI::createIconMenu(QMenu *pmenu)
-{
-    // Configuration of the tray icon (or dock icon) icon menu
-    pmenu->addAction(toggleHideAction);
-    pmenu->addSeparator();
-    pmenu->addAction(sendCoinsMenuAction);
-    pmenu->addAction(receiveCoinsMenuAction);
-    pmenu->addSeparator();
-    pmenu->addAction(signMessageAction);
-    pmenu->addAction(verifyMessageAction);
-    pmenu->addSeparator();
-    pmenu->addAction(optionsAction);
-    pmenu->addAction(openInfoAction);
-    pmenu->addAction(openRPCConsoleAction);
-    pmenu->addAction(openGraphAction);
-    pmenu->addAction(openPeersAction);
-    pmenu->addAction(openRepairAction);
-    pmenu->addSeparator();
-    pmenu->addAction(openConfEditorAction);
-    pmenu->addAction(openMNConfEditorAction);
-    pmenu->addAction(showBackupsAction);
-#ifndef Q_OS_MAC // This is built-in on Mac
-    pmenu->addSeparator();
-    pmenu->addAction(quitAction);
+#else
+    // Note: On Mac, the dock icon is used to provide the tray's functionality
+    MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
+    dockIconHandler->setMainWindow((QMainWindow *)this);
+    trayIconMenu = dockIconHandler->dockMenu();
 #endif
+
+    // Configuration of the tray icon (or dock icon) icon menu
+    trayIconMenu->addAction(toggleHideAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(sendCoinsMenuAction);
+    trayIconMenu->addAction(receiveCoinsMenuAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(signMessageAction);
+    trayIconMenu->addAction(verifyMessageAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(optionsAction);
+    trayIconMenu->addAction(openInfoAction);
+    trayIconMenu->addAction(openRPCConsoleAction);
+    trayIconMenu->addAction(openGraphAction);
+    trayIconMenu->addAction(openPeersAction);
+    trayIconMenu->addAction(openRepairAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(openConfEditorAction);
+    trayIconMenu->addAction(openMNConfEditorAction);
+    trayIconMenu->addAction(showBackupsAction);
+#ifndef Q_OS_MAC // This is built-in on Mac
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(quitAction);
+#endif
+
+    notificator = new Notificator(QApplication::applicationName(), trayIcon, this);
 }
 
 #ifndef Q_OS_MAC
