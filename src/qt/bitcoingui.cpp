@@ -624,17 +624,20 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
             // Note: ignore this on Mac - this is not the way tray should work there
             connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
                     this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
-#else
+#endif
+        }
+*/
+#ifdef Q_OS_MAC
+        if (trayIcon) {
             // Note: On Mac, the dock icon is also used to provide menu functionality
             // similar to one for tray icon
             MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
             dockIconHandler->setMainWindow((QMainWindow *)this);
             dockIconMenu = dockIconHandler->dockMenu();
- 
+
             createIconMenu(dockIconMenu);
-#endif
         }
-*/
+#endif
 
         // Keep up to date with client
         setNumConnections(clientModel->getNumConnections());
@@ -754,31 +757,35 @@ void BitcoinGUI::createTrayIcon(const NetworkStyle *networkStyle)
     trayIconMenu = dockIconHandler->dockMenu();
 #endif
 
-    // Configuration of the tray icon (or dock icon) icon menu
-    trayIconMenu->addAction(toggleHideAction);
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(sendCoinsMenuAction);
-    trayIconMenu->addAction(receiveCoinsMenuAction);
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(signMessageAction);
-    trayIconMenu->addAction(verifyMessageAction);
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(optionsAction);
-    trayIconMenu->addAction(openInfoAction);
-    trayIconMenu->addAction(openRPCConsoleAction);
-    trayIconMenu->addAction(openGraphAction);
-    trayIconMenu->addAction(openPeersAction);
-    trayIconMenu->addAction(openRepairAction);
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(openConfEditorAction);
-    trayIconMenu->addAction(openMNConfEditorAction);
-    trayIconMenu->addAction(showBackupsAction);
-#ifndef Q_OS_MAC // This is built-in on Mac
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(quitAction);
-#endif
-
+    createIconMenu(trayIconMenu);
     notificator = new Notificator(QApplication::applicationName(), trayIcon, this);
+}
+
+void BitcoinGUI::createIconMenu(QMenu *pmenu)
+{
+    // Configuration of the tray icon (or dock icon) icon menu
+    pmenu->addAction(toggleHideAction);
+    pmenu->addSeparator();
+    pmenu->addAction(sendCoinsMenuAction);
+    pmenu->addAction(receiveCoinsMenuAction);
+    pmenu->addSeparator();
+    pmenu->addAction(signMessageAction);
+    pmenu->addAction(verifyMessageAction);
+    pmenu->addSeparator();
+    pmenu->addAction(optionsAction);
+    pmenu->addAction(openInfoAction);
+    pmenu->addAction(openRPCConsoleAction);
+    pmenu->addAction(openGraphAction);
+    pmenu->addAction(openPeersAction);
+    pmenu->addAction(openRepairAction);
+    pmenu->addSeparator();
+    pmenu->addAction(openConfEditorAction);
+    pmenu->addAction(openMNConfEditorAction);
+    pmenu->addAction(showBackupsAction);
+#ifndef Q_OS_MAC // This is built-in on Mac
+    pmenu->addSeparator();
+    pmenu->addAction(quitAction);
+#endif
 }
 
 #ifndef Q_OS_MAC
